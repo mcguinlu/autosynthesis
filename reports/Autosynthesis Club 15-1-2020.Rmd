@@ -1,0 +1,102 @@
+---
+title: "Living systematic reviews - applying ML to classify new preprints uploaded to medRxiv"
+subtitle: ""
+author: "<br/> Luke McGuinness <br/> + Lena Schmidt"
+institute: "University of Bristol"
+date: "`r format(Sys.Date(), format = '%d/%m/%Y')`"
+output:
+  xaringan::moon_reader:
+    css: ["default", "reports/my-theme.css"]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+``` {r, echo = FALSE}
+
+cache <- TRUE
+
+```
+
+# Session overview
+
+.large[
+
+* Introduction
+
+* Extracting the data
+
+* Applying the model
+  
+* Initial results
+
+* Discussion
+
+]
+
+
+---
+class: inverse, center, middle
+
+# Introduction
+
+---
+
+# Living systematic reviews
+
+.larger[An LSR is “<i>a systematic review that is continually updated, incorporating relevant new evidence as it becomes available</i>” <sup>1,2</sup>
+
+Require continuous searching of the literature to identify new relevant studies.
+
+
+
+]
+
+.footnote[
+
+<sup>1</sup> <i>Guidance for the production and publication of Cochrane living systematic reviews: Cochrane Reviews in living mode Cochrane.</i> Version: December 2019  
+<sup>2</sup> Elliott JH, Synnot A, Turner T, Simmonds M, Akl EA, McDonald S, et al. <i>Living systematic review: 1. Introduction-the why, what, when, and how.</i> Journal of Clinical Epidemiology. 2017;91:23-30.
+
+]
+
+
+---
+
+# Living systematic reviews
+
+Most commonly used search frequency is monthly
+
+
+---
+
+# Extracting the data
+
+
+``` {r, echo = FALSE, cache = cache}
+library(stringr)
+library(here)
+library(pushoverr)
+library(rvest)
+
+page <- read_html("https://www.medrxiv.org/search/%252A")
+
+results <- page %>%
+  html_nodes("#page-title") %>%
+  html_text()
+
+results <- as.numeric(word(results))
+
+```
+
+<i> medRxiv </i> is the new preprint repostiory for the medical, clinical, and related health sciences.
+
+ which currently contains `r results` preprints
+
+
+---
+
+# Extracting the data
+
+Negotiation

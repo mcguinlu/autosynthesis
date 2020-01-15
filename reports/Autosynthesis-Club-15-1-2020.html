@@ -72,6 +72,9 @@ An LSR is “&lt;i&gt;a systematic review that is continually updated, incorpora
 Require frequent searches (e.g. monthly) to update evidence base
 
 Possible to set-up search alerts for major evidence sources (e.g. Web of Science, PubMed, Google Scholar)
+
+&lt;br&gt;
+Side note: new Cochrane guidance on living reviews (December 2019)
 ]
 
 .footnote[
@@ -116,7 +119,7 @@ class: inverse, center, middle
 
 ---
 
-# Extracting data from _medRxiv_
+# _medRxiv_ Overview
 
 
 
@@ -135,6 +138,27 @@ Currently contains 989 preprints,&lt;sup&gt;*&lt;/sup&gt; with approximately ~50
 
 &lt;sup&gt;*&lt;/sup&gt; This is only _technically_ true. Actually contains more, as often &gt;1 version of the same preprint
 
+]
+
+---
+
+# Introduction to web-scraping
+
+__Definition:__
+"_The process of extracting data from a website. . .and copying it to a local database for later retrieval or analysis._" &lt;sup&gt;1&lt;/sup&gt;
+
+&lt;br&gt;
+__Two key stages:__
+* Fetch the webpage (i.e.download a local copy)
+* Extract data from it
+
+&lt;br&gt;
+__Two key tools:__
+* `rvest`: an R package design to facilitate web-scraping by providing functions to achieve the steps above
+* _Selector Gadget_: Goolge Chrome plugin that helps to identify the part of the page you wish to scrape 
+
+.footnote[
+&lt;sup&gt;1&lt;/sup&gt; https://en.wikipedia.org/wiki/Web_scraping
 ]
 
 ---
@@ -186,7 +210,7 @@ Waiting period between requests
 &lt;br&gt;
 &lt;br&gt;
 &lt;br&gt;
-Do not allow scraping of the search page
+__Do not allow scraping of the search page__
 ]
 
 &lt;hr&gt;
@@ -217,7 +241,7 @@ Prevents common use of databases for systematic reviews
 # Downloading the repository
 
 .larger[
-Two scripts:
+Two R scripts:
   1. Systematically goes through the /archive path and extracts the links to each individual preprint &lt;br&gt;
   
   1. Uses the list of links created download key information for each preprint:
@@ -243,7 +267,7 @@ Rather than the search/ page, use the archive/, which contains all the preprints
 .largest[
 Process runs every morning at 8am
 
-New data is added to the master spreadsheet
+New data is added to a master spreadsheet (.CSV)
 
 Quality control practices in place
 ]
@@ -295,7 +319,7 @@ class: inverse, center, middle
 
 ---
 
-# Training dataset
+# Original dataset
 
 Systematic review of link between blood lipid levels (e.g. total cholesterol) and subsequent risk of dementia
 
@@ -348,6 +372,10 @@ The text field is created from the: Title + Abstract + Keywords
 &lt;/tbody&gt;
 &lt;/table&gt;
 
+???
+
+alpha: A column of the same letter for all rows. Not used in classification but still needed.
+
 ---
 
 # Data preprocessing
@@ -387,7 +415,7 @@ Abstracts &gt;200 characters in length split into 2 even halves and indicator co
 
 ---
 
-# Under-sampling of training data
+# Undersampling of training data
 
 .larger[
 16000 records, of which only ~400 are included (label = 1)
@@ -402,11 +430,49 @@ Solution is to under-sample training data (1 in 20) to create a more balanced da
 
 # Methods
 
-Development dataset was split into training (85%) and test (15%) datasets
+Development dataset (16109 records) was split into training (85%) and test (15%) datasets
 
 Training dataset was then under-sampled:
 * All eligible records included
-* In-eligible records were included at a rate of 1/20
+* Ineligible records were included at a rate of 1/20
+
+---
+
+# Methods
+
+Development dataset (16109 records) was split into training (85%) and test (15%) datasets
+
+Training dataset was then under-sampled:
+* All eligible records included
+* Ineligible records were included at a rate of 1/20
+
+Model: XLNet&lt;sup&gt;1&lt;/sup&gt; via `transformers` &lt;sup&gt;2&lt;/sup&gt;
+
+.footnote[
+&lt;sup&gt;1&lt;/sup&gt; Yang Z, Dai Z, Yang Y, Carbonell J, Salakhutdinov R, Le QV. XLNet: Generalized Autoregressive Pretraining for Language Understanding. arXiv preprint arXiv:1906.08237. 2019 Jun 19.  
+&lt;sup&gt;2&lt;/sup&gt; [https://huggingface.co/transformers/index.html](https://huggingface.co/transformers/index.html)
+]
+
+???
+
+And if you Google XLnet, one of the first images that comes up is:
+
+---
+
+
+class: center, middle
+
+![](figs/xlnet.png)
+
+---
+
+# Methods
+
+Development dataset (16109 records) was split into training (85%) and test (15%) datasets
+
+Training dataset was then under-sampled:
+* All eligible records included
+* Ineligible records were included at a rate of 1/20
 
 Model: XLNet&lt;sup&gt;1&lt;/sup&gt; via `transformers` &lt;sup&gt;2&lt;/sup&gt;
 
@@ -665,17 +731,19 @@ class: inverse, center, middle
 
 ---
 
-# Limitations
+# Limitations of methods
 .larger[
-Only screened those included by the model - PPV only
 
-No additional preprocessing (e.g. convert numbers to @)
 
-Different dataset - first exposure of model to new dataset
+No additional preprocessing (e.g. convert all numbers to @)
+
+Simplistic rule to combine chunk predictions into record predictions
 
 Different data fields
 * Formal databases have keywords (e.g. Dementia/Lipids/HDL)
 * _medRxiv_ only has topic area (e.g. Epidemiology)
+
+Only screened those included by the model - PPV only
 ]
 
 ---
@@ -689,35 +757,35 @@ Different data fields
 
 * Reproducible?
 
-* Informative?
+* Informative/useful?
 ]
 
 ???
 
 Code was relatively straightforward, but arguably too easy to apply. Similar argument for MR-Base, that the technology makes it too easy for people to do bad MR studies.
 
-Need better hardware - I like Google products, but Colab made me want to scream
+Need better hardware - I like Google products, but Colab made me want to scream.
 
 Same model and fine tuning parameters lead to sensitivity varying between 70% and 92%, and a similar spread for specificity.
 
-Even the best model didn't do very well
-
+By the time you train the model, could have screened the records - which you have to do anyway, as even the best model didn't do very well.
 
 ---
 
 # Future plans
 
 .larger[
-Attempt to set up automatic searching for other databases
+Add some preprocessing steps to try and improve the performance of my model
+
+Attempt to set up automatic searching/download for other databases
 
 Set-up Rmarkdown template to allow rapid analysis of evidence
 
   * Table of characteristics
   * metafor::reporter()
   * robvis::summary()
+
 ]
-
-
 
 ---
 

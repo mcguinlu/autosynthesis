@@ -471,7 +471,11 @@ And if you Google XLnet, one of the first images that comes up is:
 
 class: center, middle
 
-![](figs/xlnet.png)
+``` {r, echo = FALSE}
+
+knitr::include_graphics("figs/xlnet.png")
+
+```
 
 ---
 
@@ -680,6 +684,17 @@ Need better hardware - I like Google products, but Colab made me want to scream.
 Same model and fine tuning parameters lead to sensitivity varying between 70% and 92%, and a similar spread for specificity.
 
 By the time you train the model, could have screened the records - which you have to do anyway, as even the best model didn't do very well.
+
+---
+
+
+class: center, middle
+
+``` {r, echo = FALSE}
+
+knitr::include_graphics("figs/ml.jpg")
+
+```
 
 ---
 

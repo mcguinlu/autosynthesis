@@ -1,12 +1,12 @@
 ---
-title: "Living systematic reviews - applying ML to classify new preprints uploaded to medRxiv"
+title: "Extracting and classifying new preprints uploaded to _medRxiv_"
 subtitle: ""
-author: "<br/> Luke McGuinness <br/> + Lena Schmidt"
+author: "<br/> Luke McGuinness <br/> (+ Lena Schmidt)"
 institute: "University of Bristol"
 date: "`r format(Sys.Date(), format = '%d/%m/%Y')`"
 output:
   xaringan::moon_reader:
-    css: ["default", "reports/my-theme.css"]
+    css: ["default", "my-theme.css", "reports/my-theme.css"]
     lib_dir: libs
     nature:
       highlightStyle: github
@@ -14,30 +14,48 @@ output:
       countIncrementalSlides: false
 ---
 
-``` {r, echo = FALSE}
+``` {r, echo = FALSE, message = FALSE}
 
 cache <- TRUE
+
+library(dplyr)
 
 ```
 
 # Session overview
 
-.large[
+.largest[
 
 * Introduction
 
-* Extracting the data
+* Data extraction
 
 * Applying the model
   
-* Initial results
-
-* Discussion
+* Future plans
 
 ]
 
+---
+
+# Objectives of this project
+.largest[
+
+* Extract data from _medRxiv_ and save in a usable format
+
+* Train and deploy a machine learning model
+
+* Learn some Python <br> (via Google Colab and  `reticulate`)
+]
+
+???
+
+`reticulate` is an R package that lets you call Python scripts from R
+
+Google Colabaratory is an online environment - kind of like the Jupyter notebooks we were using earlier in the sessions
 
 ---
+
 class: inverse, center, middle
 
 # Introduction
@@ -46,12 +64,13 @@ class: inverse, center, middle
 
 # Living systematic reviews
 
-.larger[An LSR is “<i>a systematic review that is continually updated, incorporating relevant new evidence as it becomes available</i>” <sup>1,2</sup>
+.larger[
 
-Require continuous searching of the literature to identify new relevant studies.
+An LSR is “<i>a systematic review that is continually updated, incorporating relevant new evidence as it becomes available</i>” <sup>1,2</sup>
 
+Require frequent searches (e.g. monthly) to update evidence base
 
-
+Possible to set-up search alerts for major evidence sources (e.g. Web of Science, PubMed, Google Scholar)
 ]
 
 .footnote[
@@ -61,22 +80,45 @@ Require continuous searching of the literature to identify new relevant studies.
 
 ]
 
+???
+
+My interest in machine learning comes via living systematic reviews
 
 ---
 
-# Living systematic reviews
+# Preprint repositories
 
-Most commonly used search frequency is monthly
+.largest[
 
+
+Key source of new information
+
+Subject specific (e.g. _bioRxiv_,  _PsyArXiv_, _SocArXiv_ )
+
+But, do not allow mass download of citations
+
+<br>
+.center[
+**How to get the data?**
+]
+]
+
+???
+
+Preprint repositories allow researchers to upload a non-peer reviewed copy of the manuscript while going through the peer review process
 
 ---
 
-# Extracting the data
+class: inverse, center, middle
 
+# Data extraction
+
+---
+
+# Extracting data from _medRxiv_
 
 ``` {r, echo = FALSE, cache = cache}
 library(stringr)
-library(here)
 library(pushoverr)
 library(rvest)
 
@@ -90,13 +132,505 @@ results <- as.numeric(word(results))
 
 ```
 
-<i> medRxiv </i> is the new preprint repostiory for the medical, clinical, and related health sciences.
+.larger[
+_medRxiv_ is the new preprint repository for the medical, clinical, and related health sciences.
 
- which currently contains `r results` preprints
+<br>
+First preprint registered on June 25<sup>th</sup> 2019
+
+<br>
+Currently contains `r results` preprints,<sup>*</sup> with approximately ~50 new records uploaded each week
+]
+
+
+.footnote[
+
+<sup>*</sup> This is only _technically_ true. Actually contains more, as often >1 version of the same preprint
+
+]
+
+---
+
+class: center, middle
+
+![](figs/arxiv.png)
+
+.largest[Web-scraping demonstration using <br> `rvest` and _Selector Gadget_]
+
+---
+
+# Look out - `robots(.txt)`! 
+
+Defines the _paths_ within a website that can be scraped, for example:
+.center[
+<font color="grey">www.riskofbias.info</font>__/welcome/rob-2-0-tool/__
+]
+
+--
+
+<br>
+
+The robots.txt file for _medRxiv_ contains the following:
+<hr>
+.pull-left[
+_User-agent: *_  
+.  
+.  
+_Crawl-delay: 10_  
+.  
+.  
+_Disallow: /user/register/_  
+_Disallow: /user/password/_  
+_Disallow: /user/login/_  
+_Disallow: /user/logout/_  
+_Disallow: /search/_  
+]
+
+.pull-right[
+Any web-scraping software  
+
+<br>
+Waiting period between requests
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+Do not allow scraping of the search page
+]
+
+<hr>
+
+---
+
+# Look out - `robots(.txt)`! 
+
+.center[
+.largest[**Problem:** <br> Can't scrape *search/* page, so can't perform a search and download the results]
+
+]
+
+--
+
+<br>
+
+.center[
+.largest[**Solution:** <br> Create an offline copy of the *entire repository* and search it myself (if needed)]
+]
+
+???
+
+Prevents common use of databases for systematic reviews
+
+---
+
+# Downloading the repository
+
+.larger[
+Two scripts:
+  1. Systematically goes through the /archive path and extracts the links to each individual preprint <br>
+  
+  1. Uses the list of links created download key information for each preprint:
+    * Title 
+    * Abstract
+    * First author
+    * Subject category (Allergy/Pain/Public Health/Epi/etc)
+    * Link to bibtex citation
+    * Link to PDF
+    * Copy of PDF
+]  
+    
+???
+ 
+Program a set delay between scraps of 10 seconds
+
+Rather than the search/ page, use the archive/, which contains all the preprints listed on _medRxiv_ in reverse chronological order.   
+
+---
+
+# Automating the process
+
+.largest[
+Process runs every morning at 8am
+
+New data is added to the master spreadsheet
+
+Quality control practices in place
+]
+
+???
+
+And just because I am total nerd, a notification is sent to my phone
+
+---
+
+class: center, middle
+ 
+``` {r, echo = FALSE, out.width = '40%', out.height = '40%'}
+
+knitr::include_graphics("figs/screenshot.jpg")
+
+```
+
+---
+
+class:larger
+
+# Potential projects using the _medRxiv_ data
+
+.larger[
+
+* Examine conflicts of interest data
+
+]
+
+--
+
+.larger[
+
+* Examine "availability of data" statements
+
+]
+
+--
+
+
+.larger[
+
+* **Screen new preprint abstracts using a ML model**
+
+]
+
+---
+
+class: inverse, center, middle
+
+# Machine learning model to classify new preprint abstracts
+
+---
+
+# Training dataset
+
+Systematic review of link between blood lipid levels (e.g. total cholesterol) and subsequent risk of dementia
+
+Initial search of several databases:
+  * Medline  
+  * EMBASE  
+  * Psychinfo  
+  * Cochrane Central Register of Controlled Trials (CENTRAL)  
+  * Web of Science Core Collection  
+
+__16109__ titles and abstracts screened for inclusion, of which *412* moved to full text screening
+
+<br>
+
+.largest[
+**Plan: to use these to train a model to assess the eligibility of new records from _medRxiv_**
+]
 
 
 ---
 
-# Extracting the data
+# Data preprocessing
 
-Negotiation
+### Expected format
+
+The model expects the both training and testing data in a specific format:
+* Unique ID
+* Label 
+* Alpha
+* Text
+
+The text field is created from the: Title + Abstract + Keywords
+
+``` {r, echo = FALSE}
+
+data <- read.csv("../BinaryBert/all-export.csv", header = TRUE, stringsAsFactors = FALSE)
+
+data <- as.data.frame(data[182,c(2,4)])
+
+colnames(data)[1] <- "Record ID"
+colnames(data)[2] <- "Text"
+
+data$Label <- 0
+data$Alpha <- "a"
+
+data <- data[,c(1,3,4,2)]
+
+kableExtra::kable(data, row.names = FALSE) %>%
+  kableExtra::kable_styling(font_size = 12)
+
+```
+
+---
+
+# Data preprocessing
+
+### Creating chunks
+
+Abstracts >200 characters in length split into 2 even halves and indicator column created:
+
+``` {r, echo = FALSE}
+
+data <- read.csv("../BinaryBert/all-export.csv", header = TRUE)
+
+data <- data[2:4]
+
+
+colnames(data)[1] <- "Record ID"
+colnames(data)[2] <- "Chunk ID"
+colnames(data)[3] <- "Chunk text"
+data$Label <- 0
+data$Alpha <- "a"
+
+data <- data[,c(1,4,5,2,3)]
+
+kableExtra::kable(data[c(263:264),], row.names = FALSE) %>%
+  kableExtra::kable_styling(font_size = 11)
+
+```
+
+
+---
+
+# Under-sampling of training data
+
+.larger[
+16000 records, of which only ~400 are included (label = 1)
+
+Problematic - model will just learn to mark everything as exclude
+
+Solution is to under-sample training data (1 in 20) to create a more balanced dataset
+
+]
+
+---
+
+# Methods
+
+Development dataset was split into training (85%) and test (15%) datasets
+
+Training dataset was then under-sampled:
+* All eligible records included
+* In-eligible records were included at a rate of 1/20
+
+Model: XLNet<sup>1</sup> via `transformers` <sup>2</sup>
+
+Fine tuning parameters:
+  * Epochs: 3
+  * Batch size: 8
+  * Learning rate: 2e-5 (medium to low)
+  * Warm-up steps: 50
+
+.footnote[
+<sup>1</sup> Yang Z, Dai Z, Yang Y, Carbonell J, Salakhutdinov R, Le QV. XLNet: Generalized Autoregressive Pretraining for Language Understanding. arXiv preprint arXiv:1906.08237. 2019 Jun 19.  
+<sup>2</sup> [https://huggingface.co/transformers/index.html](https://huggingface.co/transformers/index.html)
+]
+
+???
+
+epoch. A term that is often used in the context of machine learning. An epoch is one complete presentation of the data set to be learned to a learning machine.
+
+Batch size is a term used in machine learning and refers to the number of training examples utilized in one iteration.
+
+---
+
+# Training results
+
+.larger[
+
+Best model results, when assessed using test data (15% of original):
+
+* Sensitivity: 89%
+* Specificity: 91%
+
+<br>
+
+**Next step: apply this model to the new dataset of 1043 preprint records from _medRxiv_**
+
+]
+
+---
+
+# Cleaning the predictions
+
+### Chunk predictions
+
+``` {r, echo = FALSE}
+
+data <- read.csv("../BinaryBert/all-export.csv", header = TRUE, stringsAsFactors = FALSE)
+
+data <- data[2:5]
+
+colnames(data)[1] <- "Record ID"
+colnames(data)[2] <- "Chunk ID"
+colnames(data)[3] <- "Chunk text"
+colnames(data)[4] <- "Chunk prediction"
+
+kableExtra::kable(data[c(263:264,267:269),], row.names = FALSE) %>%
+  kableExtra::kable_styling(font_size = 8)
+
+```
+
+---
+
+# Cleaning the predictions
+
+### Record predictions
+
+``` {r, echo = FALSE}
+
+data <- read.csv("../BinaryBert/all-export.csv", header = TRUE, stringsAsFactors = FALSE)
+
+data <- data[2:6]
+
+colnames(data)[1] <- "Record ID"
+colnames(data)[2] <- "Chunk ID"
+colnames(data)[3] <- "Chunk text"
+colnames(data)[4] <- "Chunk prediction"
+colnames(data)[5] <- "Record prediction"
+
+kableExtra::kable(data[c(263:264,267:269),], row.names = FALSE) %>%
+  kableExtra::kable_styling(font_size = 8)
+
+```
+
+???
+
+Rule to combine chunk predictions
+
+---
+
+# Cleaning the predictions
+
+### Final predictions
+
+``` {r, echo = FALSE}
+
+data <- read.csv("../BinaryBert/finalpredictions_CLEAN.csv", header = TRUE, stringsAsFactors = FALSE)
+
+data <- data[,c(2,3,6,7)]
+
+colnames(data)[1] <- "Record ID"
+colnames(data)[2] <- "Title"
+colnames(data)[3] <- "Prediction"
+colnames(data)[4] <- "Prediction score"
+
+kableExtra::kable(data[c(132,14,228, 42, 900, 112, 555),], row.names = FALSE) %>%
+  kableExtra::kable_styling(font_size = 11)
+
+```
+
+---
+
+# Results
+
+.larger[
+
+Best model results, when assessed using test data (15% of original):
+
+* Sensitivity: 89%
+* Specificity: 91%
+
+]
+
+--
+
+<br>
+
+.larger[
+When applied to the new data (1043 records from medRxiv):
+
+* 66 marked as included
+* 977 marked as excluded
+]
+
+--
+
+<br>
+
+.larger[
+
+A review of the studies marked as "included" found <font color = "red">__2 eligible studies__</font>
+
+]
+
+
+???
+
+
+Model performance leads to large number of false positives, but small number of false negatives. 
+
+Preferable in this case, as accept the trade off of having to screen extra false positives for reduced chance of excluding eligible record.
+
+But 66 records marked as included all were at least someway relevant.
+
+---
+
+class: inverse, center, middle
+
+# Discussion
+
+---
+
+# Limitations
+.larger[
+Only screened those included by the model - PPV only
+
+No additional preprocessing (e.g. convert numbers to @)
+
+Different dataset - first exposure of model to new dataset
+
+Different data fields
+* Formal databases have keywords (e.g. Dementia/Lipids/HDL)
+* _medRxiv_ only has topic area (e.g. Epidemiology)
+]
+
+---
+
+# Comments on machine learning
+
+.largest[
+* Accessible?
+  * Code
+  * Hardware
+
+* Reproducible?
+
+* Informative?
+]
+
+???
+
+Code was relatively straightforward, but arguably too easy to apply. Similar argument for MR-Base, that the technology makes it too easy for people to do bad MR studies.
+
+Need better hardware - I like Google products, but Colab made me want to scream
+
+Same model and fine tuning parameters lead to sensitivity varying between 70% and 92%, and a similar spread for specificity.
+
+Even the best model didn't do very well
+
+
+---
+
+# Future plans
+
+.larger[
+Attempt to set up automatic searching for other databases
+
+Set-up Rmarkdown template to allow rapid analysis of evidence
+
+  * Table of characteristics
+  * metafor::reporter()
+  * robvis::summary()
+]
+
+
+
+---
+
+class: center, middle, inverse
+
+# With (many, many, many)<br> thanks  to  Lena Schmidt

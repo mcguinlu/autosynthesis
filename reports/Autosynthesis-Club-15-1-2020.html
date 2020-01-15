@@ -1,48 +1,62 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
   <head>
-    <title>Living systematic reviews - applying ML to classify new preprints uploaded to medRxiv</title>
+    <title>Extracting and classifying new preprints uploaded to medRxiv</title>
     <meta charset="utf-8" />
-    <meta name="author" content="  Luke McGuinness   + Lena Schmidt" />
-    <meta name="date" content="2020-10-01" />
+    <meta name="author" content="  Luke McGuinness   (+ Lena Schmidt)" />
     <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <script src="libs/kePrint-0.0.1/kePrint.js"></script>
+    <link rel="stylesheet" href="my-theme.css" type="text/css" />
     <link rel="stylesheet" href="reports\my-theme.css" type="text/css" />
   </head>
   <body>
     <textarea id="source">
 class: center, middle, inverse, title-slide
 
-# Living systematic reviews - applying ML to classify new preprints uploaded to medRxiv
-### <br/> Luke McGuinness <br/> + Lena Schmidt
+# Extracting and classifying new preprints uploaded to <em>medRxiv</em>
+### <br/> Luke McGuinness <br/> (+ Lena Schmidt)
 ### University of Bristol
-### 10/01/2020
+### 15/01/2020
 
 ---
 
 
 
-```r
-cache &lt;- TRUE
-```
 
 # Session overview
 
-.large[
+.largest[
 
 * Introduction
 
-* Extracting the data
+* Data extraction
 
 * Applying the model
   
-* Initial results
-
-* Discussion
+* Future plans
 
 ]
 
+---
+
+# Objectives of this project
+.largest[
+
+* Extract data from _medRxiv_ and save in a usable format
+
+* Train and deploy a machine learning model
+
+* Learn some Python &lt;br&gt; (via Google Colab and  `reticulate`)
+]
+
+???
+
+`reticulate` is an R package that lets you call Python scripts from R
+
+Google Colabaratory is an online environment - kind of like the Jupyter notebooks we were using earlier in the sessions
 
 ---
+
 class: inverse, center, middle
 
 # Introduction
@@ -51,12 +65,13 @@ class: inverse, center, middle
 
 # Living systematic reviews
 
-.larger[An LSR is “&lt;i&gt;a systematic review that is continually updated, incorporating relevant new evidence as it becomes available&lt;/i&gt;” &lt;sup&gt;1,2&lt;/sup&gt;
+.larger[
 
-Require continuous searching of the literature to identify new relevant studies.
+An LSR is “&lt;i&gt;a systematic review that is continually updated, incorporating relevant new evidence as it becomes available&lt;/i&gt;” &lt;sup&gt;1,2&lt;/sup&gt;
 
+Require frequent searches (e.g. monthly) to update evidence base
 
-
+Possible to set-up search alerts for major evidence sources (e.g. Web of Science, PubMed, Google Scholar)
 ]
 
 .footnote[
@@ -66,29 +81,649 @@ Require continuous searching of the literature to identify new relevant studies.
 
 ]
 
+???
+
+My interest in machine learning comes via living systematic reviews
 
 ---
 
-# Living systematic reviews
+# Preprint repositories
 
-Most commonly used search frequency is monthly
+.largest[
+
+
+Key source of new information
+
+Subject specific (e.g. _bioRxiv_,  _PsyArXiv_, _SocArXiv_ )
+
+But, do not allow mass download of citations
+
+&lt;br&gt;
+.center[
+**How to get the data?**
+]
+]
+
+???
+
+Preprint repositories allow researchers to upload a non-peer reviewed copy of the manuscript while going through the peer review process
+
+---
+
+class: inverse, center, middle
+
+# Data extraction
+
+---
+
+# Extracting data from _medRxiv_
+
+
+
+.larger[
+_medRxiv_ is the new preprint repository for the medical, clinical, and related health sciences.
+
+&lt;br&gt;
+First preprint registered on June 25&lt;sup&gt;th&lt;/sup&gt; 2019
+
+&lt;br&gt;
+Currently contains 989 preprints,&lt;sup&gt;*&lt;/sup&gt; with approximately ~50 new records uploaded each week
+]
+
+
+.footnote[
+
+&lt;sup&gt;*&lt;/sup&gt; This is only _technically_ true. Actually contains more, as often &gt;1 version of the same preprint
+
+]
+
+---
+
+class: center, middle
+
+![](figs/arxiv.png)
+
+.largest[Web-scraping demonstration using &lt;br&gt; `rvest` and _Selector Gadget_]
+
+---
+
+# Look out - `robots(.txt)`! 
+
+Defines the _paths_ within a website that can be scraped, for example:
+.center[
+&lt;font color="grey"&gt;www.riskofbias.info&lt;/font&gt;__/welcome/rob-2-0-tool/__
+]
+
+--
+
+&lt;br&gt;
+
+The robots.txt file for _medRxiv_ contains the following:
+&lt;hr&gt;
+.pull-left[
+_User-agent: *_  
+.  
+.  
+_Crawl-delay: 10_  
+.  
+.  
+_Disallow: /user/register/_  
+_Disallow: /user/password/_  
+_Disallow: /user/login/_  
+_Disallow: /user/logout/_  
+_Disallow: /search/_  
+]
+
+.pull-right[
+Any web-scraping software  
+
+&lt;br&gt;
+Waiting period between requests
+&lt;br&gt;
+&lt;br&gt;
+&lt;br&gt;
+&lt;br&gt;
+&lt;br&gt;
+&lt;br&gt;
+&lt;br&gt;
+Do not allow scraping of the search page
+]
+
+&lt;hr&gt;
+
+---
+
+# Look out - `robots(.txt)`! 
+
+.center[
+.largest[**Problem:** &lt;br&gt; Can't scrape *search/* page, so can't perform a search and download the results]
+
+]
+
+--
+
+&lt;br&gt;
+
+.center[
+.largest[**Solution:** &lt;br&gt; Create an offline copy of the *entire repository* and search it myself (if needed)]
+]
+
+???
+
+Prevents common use of databases for systematic reviews
+
+---
+
+# Downloading the repository
+
+.larger[
+Two scripts:
+  1. Systematically goes through the /archive path and extracts the links to each individual preprint &lt;br&gt;
+  
+  1. Uses the list of links created download key information for each preprint:
+    * Title 
+    * Abstract
+    * First author
+    * Subject category (Allergy/Pain/Public Health/Epi/etc)
+    * Link to bibtex citation
+    * Link to PDF
+    * Copy of PDF
+]  
+    
+???
+ 
+Program a set delay between scraps of 10 seconds
+
+Rather than the search/ page, use the archive/, which contains all the preprints listed on _medRxiv_ in reverse chronological order.   
+
+---
+
+# Automating the process
+
+.largest[
+Process runs every morning at 8am
+
+New data is added to the master spreadsheet
+
+Quality control practices in place
+]
+
+???
+
+And just because I am total nerd, a notification is sent to my phone
+
+---
+
+class: center, middle
+ 
+&lt;img src="figs/screenshot.jpg" width="40%" height="40%" /&gt;
+
+---
+
+class:larger
+
+# Potential projects using the _medRxiv_ data
+
+.larger[
+
+* Examine conflicts of interest data
+
+]
+
+--
+
+.larger[
+
+* Examine "availability of data" statements
+
+]
+
+--
+
+
+.larger[
+
+* **Screen new preprint abstracts using a ML model**
+
+]
+
+---
+
+class: inverse, center, middle
+
+# Machine learning model to classify new preprint abstracts
+
+---
+
+# Training dataset
+
+Systematic review of link between blood lipid levels (e.g. total cholesterol) and subsequent risk of dementia
+
+Initial search of several databases:
+  * Medline  
+  * EMBASE  
+  * Psychinfo  
+  * Cochrane Central Register of Controlled Trials (CENTRAL)  
+  * Web of Science Core Collection  
+
+__16109__ titles and abstracts screened for inclusion, of which *412* moved to full text screening
+
+&lt;br&gt;
+
+.largest[
+**Plan: to use these to train a model to assess the eligibility of new records from _medRxiv_**
+]
 
 
 ---
 
-# Extracting the data
+# Data preprocessing
+
+### Expected format
+
+The model expects the both training and testing data in a specific format:
+* Unique ID
+* Label 
+* Alpha
+* Text
+
+The text field is created from the: Title + Abstract + Keywords
+
+&lt;table class="table" style="font-size: 12px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; Record ID &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Label &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Alpha &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Text &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 89 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; a &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Demonstration of a portable intracortical brain-computer interface abstract: While recent advances in intracortical brain-computer interfaces ( iBCI ) have demonstrated the ability to restore motor and communication functions , such demonstrations have generally been confined to controlled experimental settings and have required bulky laboratory hardware . Here , we developed and evaluated a self-contained portable iBCI that enabled the user to interact with various computer programs . The iBCI , which weighs 1.5 kg , consists of digital headstages , a small signal processing hub , and a tablet PC . A human participant tested the portable iBCI in laboratory and home settings under an FDA Investigational Device Exemption ( NCT01894802 ) . The participant successfully completed 96 % of trials in a 2D cursor center-out task with the portable iBCI , a rate indistinguishable from that achieved with the standard laboratory iBCI . The participant also completed a variety of free-form tasks , including drawing , gaming , and typing . keyword: Rehabilitation Medicine and Physical Therapy &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+---
+
+# Data preprocessing
+
+### Creating chunks
+
+Abstracts &gt;200 characters in length split into 2 even halves and indicator column created:
+
+&lt;table class="table" style="font-size: 11px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; Record ID &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Label &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Alpha &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Chunk ID &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Chunk text &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 129 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; a &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 129_0 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Our culture prohibits some things: Qualitative inquiry into how sociocultural context influences the scale up of community-based injectable contraceptives in Nigeria abstract: Objectives : To explore how sociocultural factors may support or impede the adoption of community-based distribution of injectable contraceptives in Nigeria . Design : A qualitative study based on a grounded theory approach was conducted through in-depth interviews and focus group discussions . Setting : Most participants lived in Gombe State , North East Nigeria . Other participants were from Ibadan ( South West ) and Abuja ( Federal capital territory ) . Participants : Through seven key informant interviews , 15 in-depth interviews and 10 focus group discussions , 102 participants were involved in the study . Methods : This study , conducted in 2016 was part of a larger study on scale up of community-based distribution of injectable contraceptives . Qualitative data were collected from traditional and religious leaders , health workers and community members . The data were audio recorded , transcribed and analysed using a thematic framework method . Results : Sociocultural challenges to scale up included patriarchy and men fear of losing control over their spouses keyword: Health Policy &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 129 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; a &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 129_1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Our culture prohibits some things: Qualitative inquiry into how sociocultural context influences the scale up of community-based injectable contraceptives in Nigeria abstract: spouses , traditional and religious beliefs about fertility , and myths about contraceptives and family planning . As a result of deep-rooted beliefs that children are divine blessings and that procreation should not be regulated , participants described a subtle resistance to uptake of injectable contraceptives . Since Gombe is largely a patriarchal society , male involvement emerged as important to the success of meaningful innovation uptake . Community leaders largely described their participation in the scale up process as active , although they also identified scope for further involvement and recognition . Conclusion : Scale up is more than setting up health sector implementing structures , training health workers and getting innovation supplies , but also requires preparedness which includes paying attention to complex contextual issues . This requires the health system and those who work in it , to move beyond a narrow health comfort zone by actively engaging with , and learning from , those who are leading , caring for and living in , the community . keyword: Health Policy &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+---
+
+# Under-sampling of training data
+
+.larger[
+16000 records, of which only ~400 are included (label = 1)
+
+Problematic - model will just learn to mark everything as exclude
+
+Solution is to under-sample training data (1 in 20) to create a more balanced dataset
+
+]
+
+---
+
+# Methods
+
+Development dataset was split into training (85%) and test (15%) datasets
+
+Training dataset was then under-sampled:
+* All eligible records included
+* In-eligible records were included at a rate of 1/20
+
+Model: XLNet&lt;sup&gt;1&lt;/sup&gt; via `transformers` &lt;sup&gt;2&lt;/sup&gt;
+
+Fine tuning parameters:
+  * Epochs: 3
+  * Batch size: 8
+  * Learning rate: 2e-5 (medium to low)
+  * Warm-up steps: 50
+
+.footnote[
+&lt;sup&gt;1&lt;/sup&gt; Yang Z, Dai Z, Yang Y, Carbonell J, Salakhutdinov R, Le QV. XLNet: Generalized Autoregressive Pretraining for Language Understanding. arXiv preprint arXiv:1906.08237. 2019 Jun 19.  
+&lt;sup&gt;2&lt;/sup&gt; [https://huggingface.co/transformers/index.html](https://huggingface.co/transformers/index.html)
+]
+
+???
+
+epoch. A term that is often used in the context of machine learning. An epoch is one complete presentation of the data set to be learned to a learning machine.
+
+Batch size is a term used in machine learning and refers to the number of training examples utilized in one iteration.
+
+---
+
+# Training results
+
+.larger[
+
+Best model results, when assessed using test data (15% of original):
+
+* Sensitivity: 89%
+* Specificity: 91%
+
+&lt;br&gt;
+
+**Next step: apply this model to the new dataset of 1043 preprint records from _medRxiv_**
+
+]
+
+---
+
+# Cleaning the predictions
+
+### Chunk predictions
+
+&lt;table class="table" style="font-size: 8px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; Record ID &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Chunk ID &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Chunk text &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Chunk prediction &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 129 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 129_0 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Our culture prohibits some things: Qualitative inquiry into how sociocultural context influences the scale up of community-based injectable contraceptives in Nigeria abstract: Objectives : To explore how sociocultural factors may support or impede the adoption of community-based distribution of injectable contraceptives in Nigeria . Design : A qualitative study based on a grounded theory approach was conducted through in-depth interviews and focus group discussions . Setting : Most participants lived in Gombe State , North East Nigeria . Other participants were from Ibadan ( South West ) and Abuja ( Federal capital territory ) . Participants : Through seven key informant interviews , 15 in-depth interviews and 10 focus group discussions , 102 participants were involved in the study . Methods : This study , conducted in 2016 was part of a larger study on scale up of community-based distribution of injectable contraceptives . Qualitative data were collected from traditional and religious leaders , health workers and community members . The data were audio recorded , transcribed and analysed using a thematic framework method . Results : Sociocultural challenges to scale up included patriarchy and men fear of losing control over their spouses keyword: Health Policy &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 129 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 129_1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Our culture prohibits some things: Qualitative inquiry into how sociocultural context influences the scale up of community-based injectable contraceptives in Nigeria abstract: spouses , traditional and religious beliefs about fertility , and myths about contraceptives and family planning . As a result of deep-rooted beliefs that children are divine blessings and that procreation should not be regulated , participants described a subtle resistance to uptake of injectable contraceptives . Since Gombe is largely a patriarchal society , male involvement emerged as important to the success of meaningful innovation uptake . Community leaders largely described their participation in the scale up process as active , although they also identified scope for further involvement and recognition . Conclusion : Scale up is more than setting up health sector implementing structures , training health workers and getting innovation supplies , but also requires preparedness which includes paying attention to complex contextual issues . This requires the health system and those who work in it , to move beyond a narrow health comfort zone by actively engaging with , and learning from , those who are leading , caring for and living in , the community . keyword: Health Policy &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 131 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 131_0 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Does Smoking Cause Lower Educational Attainment and General Cognitive Ability? Triangulation of causal evidence using multiple study designs abstract: Objectives : Observational epidemiological studies have found associations between smoking and both poorer cognitive ability and lower educational attainment ; however , evaluating causality is more challenging . We used two complementary methods to attempt to ascertain whether smoking causes poorer cognitive ability and lower educational attainment . Design : A cohort study ( Study One ) and a two-sample Mendelian randomization study using publicly-available summary statistics ( Study Two ) . Setting : The Avon Longitudinal Study of Parents and Children ( ALSPAC ) , a birth-cohort study based in Bristol , United Kingdom , and general population samples from published genome-wide association studies ( GWAS ) . Participants : Up to 12,004 young people in ALSPAC ( complete case analysis N = 2,107 ) ( Study One and Study Two ) , and summary statistics from three previously keyword: Epidemiology &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 131 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 131_1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Does Smoking Cause Lower Educational Attainment and General Cognitive Ability? Triangulation of causal evidence using multiple study designs abstract: previously published GWAS ( not individual-level data ) ( Study Two ) . Main outcome measures : Cognitive ability at age 15 ( assessed via the Wechsler Abbreviated Scale of Intelligence ) and educational attainment at age 16 ( assessed via school records ) ( Study One ) , and educational attainment ( measured as years in education ) and fluid intelligence from previously published GWAS ( Study Two ) . Results : In Study One , heaviness of smoking at age 15 was associated with lower cognitive ability at age 15 and lower educational attainment at age 16 . Adjustment for potential confounders and earlier cognitive ability or educational attainment attenuated findings although evidence of an association remained ( e.g. , fully adjusted cognitive ability beta -0.736 , 95 % CI -1.238 to -0.233 , P = 0.004 ; keyword: Epidemiology &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 131 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 131_2 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Does Smoking Cause Lower Educational Attainment and General Cognitive Ability? Triangulation of causal evidence using multiple study designs abstract: ; fully adjusted educational attainment beta -1.254 , 95 % CI -1.597 to -0.911 , P &amp;lt; 0.001 ) . Comparable results were found in sensitivity analyses of multiply imputed data . In Study Two , two-sample Mendelian randomization indicated that both smoking initiation and lifetime smoking lower educational attainment and cognitive ability ( e.g. , smoking initiation to educational attainment inverse-variance weighted MR beta -0.197 , 95 % CI -0.223 , -0.171 , P = 1.78 x 10-49 ) . Educational attainment results were robust to various sensitivity analyses , while cognition analyses were less so . Conclusions : Our results provide evidence consistent with a causal effect of smoking on lower educational attainment , although were less consistent for cognitive ability . The triangulation of evidence from observational and Mendelian randomisation methods is an important strength for causal keyword: Epidemiology &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+---
+
+# Cleaning the predictions
+
+### Record predictions
+
+&lt;table class="table" style="font-size: 8px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; Record ID &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Chunk ID &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Chunk text &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Chunk prediction &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Record prediction &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 129 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 129_0 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Our culture prohibits some things: Qualitative inquiry into how sociocultural context influences the scale up of community-based injectable contraceptives in Nigeria abstract: Objectives : To explore how sociocultural factors may support or impede the adoption of community-based distribution of injectable contraceptives in Nigeria . Design : A qualitative study based on a grounded theory approach was conducted through in-depth interviews and focus group discussions . Setting : Most participants lived in Gombe State , North East Nigeria . Other participants were from Ibadan ( South West ) and Abuja ( Federal capital territory ) . Participants : Through seven key informant interviews , 15 in-depth interviews and 10 focus group discussions , 102 participants were involved in the study . Methods : This study , conducted in 2016 was part of a larger study on scale up of community-based distribution of injectable contraceptives . Qualitative data were collected from traditional and religious leaders , health workers and community members . The data were audio recorded , transcribed and analysed using a thematic framework method . Results : Sociocultural challenges to scale up included patriarchy and men fear of losing control over their spouses keyword: Health Policy &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 129 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 129_1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Our culture prohibits some things: Qualitative inquiry into how sociocultural context influences the scale up of community-based injectable contraceptives in Nigeria abstract: spouses , traditional and religious beliefs about fertility , and myths about contraceptives and family planning . As a result of deep-rooted beliefs that children are divine blessings and that procreation should not be regulated , participants described a subtle resistance to uptake of injectable contraceptives . Since Gombe is largely a patriarchal society , male involvement emerged as important to the success of meaningful innovation uptake . Community leaders largely described their participation in the scale up process as active , although they also identified scope for further involvement and recognition . Conclusion : Scale up is more than setting up health sector implementing structures , training health workers and getting innovation supplies , but also requires preparedness which includes paying attention to complex contextual issues . This requires the health system and those who work in it , to move beyond a narrow health comfort zone by actively engaging with , and learning from , those who are leading , caring for and living in , the community . keyword: Health Policy &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 131 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 131_0 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Does Smoking Cause Lower Educational Attainment and General Cognitive Ability? Triangulation of causal evidence using multiple study designs abstract: Objectives : Observational epidemiological studies have found associations between smoking and both poorer cognitive ability and lower educational attainment ; however , evaluating causality is more challenging . We used two complementary methods to attempt to ascertain whether smoking causes poorer cognitive ability and lower educational attainment . Design : A cohort study ( Study One ) and a two-sample Mendelian randomization study using publicly-available summary statistics ( Study Two ) . Setting : The Avon Longitudinal Study of Parents and Children ( ALSPAC ) , a birth-cohort study based in Bristol , United Kingdom , and general population samples from published genome-wide association studies ( GWAS ) . Participants : Up to 12,004 young people in ALSPAC ( complete case analysis N = 2,107 ) ( Study One and Study Two ) , and summary statistics from three previously keyword: Epidemiology &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 131 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 131_1 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Does Smoking Cause Lower Educational Attainment and General Cognitive Ability? Triangulation of causal evidence using multiple study designs abstract: previously published GWAS ( not individual-level data ) ( Study Two ) . Main outcome measures : Cognitive ability at age 15 ( assessed via the Wechsler Abbreviated Scale of Intelligence ) and educational attainment at age 16 ( assessed via school records ) ( Study One ) , and educational attainment ( measured as years in education ) and fluid intelligence from previously published GWAS ( Study Two ) . Results : In Study One , heaviness of smoking at age 15 was associated with lower cognitive ability at age 15 and lower educational attainment at age 16 . Adjustment for potential confounders and earlier cognitive ability or educational attainment attenuated findings although evidence of an association remained ( e.g. , fully adjusted cognitive ability beta -0.736 , 95 % CI -1.238 to -0.233 , P = 0.004 ; keyword: Epidemiology &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 131 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; 131_2 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Does Smoking Cause Lower Educational Attainment and General Cognitive Ability? Triangulation of causal evidence using multiple study designs abstract: ; fully adjusted educational attainment beta -1.254 , 95 % CI -1.597 to -0.911 , P &amp;lt; 0.001 ) . Comparable results were found in sensitivity analyses of multiply imputed data . In Study Two , two-sample Mendelian randomization indicated that both smoking initiation and lifetime smoking lower educational attainment and cognitive ability ( e.g. , smoking initiation to educational attainment inverse-variance weighted MR beta -0.197 , 95 % CI -0.223 , -0.171 , P = 1.78 x 10-49 ) . Educational attainment results were robust to various sensitivity analyses , while cognition analyses were less so . Conclusions : Our results provide evidence consistent with a causal effect of smoking on lower educational attainment , although were less consistent for cognitive ability . The triangulation of evidence from observational and Mendelian randomisation methods is an important strength for causal keyword: Epidemiology &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+???
+
+Rule to combine chunk predictions
+
+---
+
+# Cleaning the predictions
+
+### Final predictions
+
+&lt;table class="table" style="font-size: 11px; margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; Record ID &lt;/th&gt;
+   &lt;th style="text-align:left;"&gt; Title &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Prediction &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Prediction score &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 131 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Does Smoking Cause Lower Educational Attainment and General Cognitive Ability? Triangulation of causal evidence using multiple study designs &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Post-discharge Acute Care and Outcomes in the Era of Readmission Reduction: A National Retrospective Cohort Study of Medicare Beneficiaries in the United States &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 227 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Trends and variation in prescribing of suboptimal statin treatment regimes: a cohort study in English primary care &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 41 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Efficient prediction of vitamin B deficiencies via machine-learning using routine blood test results in patients with intense psychiatric episode &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 899 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Is e-cigarette use in non-smoking young adults associated with later smoking? A systematic review and meta-analysis &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 111 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; Physicians learning in the workplace: use of informal feedback cues in daily practice &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 554 &lt;/td&gt;
+   &lt;td style="text-align:left;"&gt; A single-blinded randomized crossover trial comparing peer-to-peer and standard instruction on airway management skill training &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+---
+
+# Results
+
+.larger[
+
+Best model results, when assessed using test data (15% of original):
+
+* Sensitivity: 89%
+* Specificity: 91%
+
+]
+
+--
+
+&lt;br&gt;
+
+.larger[
+When applied to the new data (1043 records from medRxiv):
+
+* 66 marked as included
+* 977 marked as excluded
+]
+
+--
+
+&lt;br&gt;
+
+.larger[
+
+A review of the studies marked as "included" found &lt;font color = "red"&gt;__2 eligible studies__&lt;/font&gt;
+
+]
+
+
+???
+
+
+Model performance leads to large number of false positives, but small number of false negatives. 
+
+Preferable in this case, as accept the trade off of having to screen extra false positives for reduced chance of excluding eligible record.
+
+But 66 records marked as included all were at least someway relevant.
+
+---
+
+class: inverse, center, middle
+
+# Discussion
+
+---
+
+# Limitations
+.larger[
+Only screened those included by the model - PPV only
+
+No additional preprocessing (e.g. convert numbers to @)
+
+Different dataset - first exposure of model to new dataset
+
+Different data fields
+* Formal databases have keywords (e.g. Dementia/Lipids/HDL)
+* _medRxiv_ only has topic area (e.g. Epidemiology)
+]
+
+---
+
+# Comments on machine learning
+
+.largest[
+* Accessible?
+  * Code
+  * Hardware
+
+* Reproducible?
+
+* Informative?
+]
+
+???
+
+Code was relatively straightforward, but arguably too easy to apply. Similar argument for MR-Base, that the technology makes it too easy for people to do bad MR studies.
+
+Need better hardware - I like Google products, but Colab made me want to scream
+
+Same model and fine tuning parameters lead to sensitivity varying between 70% and 92%, and a similar spread for specificity.
+
+Even the best model didn't do very well
+
+
+---
+
+# Future plans
+
+.larger[
+Attempt to set up automatic searching for other databases
+
+Set-up Rmarkdown template to allow rapid analysis of evidence
+
+  * Table of characteristics
+  * metafor::reporter()
+  * robvis::summary()
+]
 
 
 
-```
-## here() starts at C:/Users/lm16564/OneDrive - University of Bristol/Documents/rrr/autosynthesis
-```
+---
 
-```
-## Loading required package: xml2
-```
+class: center, middle, inverse
 
-&lt;i&gt; medRxiv &lt;/i&gt; is the new preprint repostiory, which currently contains 956 preprints.
+# With (many, many, many)&lt;br&gt; thanks  to  Lena Schmidt
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>

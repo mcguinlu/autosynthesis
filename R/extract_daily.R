@@ -1,67 +1,57 @@
-# medRxiv
 
-library(stringr)
-library(rvest)
-library(here)
-library(pushoverr)
-library(readr)
 
-PUSHOVER_USER="u5axb7d9uwvhfzrjvqwb52jqfx1v97"
-PUSHOVER_APP="agn73s1hv29un4ocfv95ajzs7wjgxu"
-
+# PUSHOVER_USER=readLines("PUSHOVER_USER.txt")
+# PUSHOVER_APP=readLines("PUSHOVER_APP.txt")
 
 extractdailyfn <- function(){
-links_daily <- data.frame(link = character(), 
-                 stringsAsFactors=FALSE)
-
-links_recent_df <- read.csv("data/medRxiv_last_extracted.csv", stringsAsFactors = FALSE)
-links_recent <- links_recent_df[1,1]
-
-for (pageno in 0:100){
-  print(paste0("Page ",pageno))
-  page <- read_html(paste0("https://www.medrxiv.org/archive?field_highwire_a_epubdate_value%5Bvalue%5D&page=",pageno))
   
-  tmp <- page %>%
-    html_nodes(".highwire-cite-linked-title") %>%
-    html_attr('href') %>%
-    as.data.frame()
+message2 <- "Starting medRxiv daily extraction. . ."
+  
+pushover(message2, user = PUSHOVER_USER, app = PUSHOVER_APP)  
+  
 
-  colnames(tmp)[1] <- "link"
-  
-  if ((links_recent %in% tmp$link)==TRUE) {
-    row_no <- which(tmp$link==links_recent)
-    tmp <- as.data.frame(tmp[c(1:which(tmp$link==links_recent)-1),1])
-    colnames(tmp)[1] <- "link"
-    links_daily <- rbind(links_daily, tmp)
-    print("Found most recent extract")
-    break
-  }
-  
-  links_daily <- rbind(links_daily, tmp)
-  
-  sleep_time <- runif(1,10,13)
-  Sys.sleep(sleep_time)
-}
+# Get most recent node ----------------------------------------------------
 
-if (length(links_daily$link)==0) {
-  pushover("Daily data extraction for medRxiv complete! No new medRxiv records found.",
-           user = PUSHOVER_USER,
-           app = PUSHOVER_APP)
+node_recent <- read.csv("data/medRxiv_last_extracted.csv", stringsAsFactors = FALSE)
+node_recent <- node_recent[1,1]
+
+# Get target node ---------------------------------------------------------
+
+page <- read_html("https://www.medrxiv.org/archive?field_highwire_a_epubdate_value%5Bvalue%5D&page=0")
+
+tmp <- page %>%
+  html_nodes(".highwire-cite-linked-title") %>%
+  html_attr('href') %>%
+  data.frame(stringsAsFactors = FALSE)
+
+tmp <- tmp[1,1]
+
+page2 <- try(read_html(paste0("https://www.medrxiv.org/",tmp)))
+
+target_node <- page2 %>%
+  html_node(".first .hw-download-citation-link") %>%
+  html_attr('href')
+
+#Clean target node
+target_node <- gsub("/highwire/citation/","",target_node)
+target_node <- gsub("/bibtext","",target_node)
+
+# Check that new records exist --------------------------------------------
+
+node_recent <- as.numeric(node_recent)
+target_node <- as.numeric(target_node)
+
+if (node_recent==target_node) {
+  # cc <- cross_check()
+  # pushover(message = paste0("No new medRxiv records found. Cross check: ",cc),
+  #          user = PUSHOVER_USER,
+  #          app = PUSHOVER_APP)
   stop("No new links")
 }
 
-print("Saving daily links . . . .")
-write.csv(links_daily,"data/medRxiv_links_daily.csv", row.names = FALSE)
+# Extract data ------------------------------------------------------------
 
-print("Saving new reference link. . .")
-new_links_recent <- links_daily[1,1]
-write.csv(new_links_recent,"data/medRxiv_last_extracted.csv", row.names = FALSE)
-
-# Abstract and metadata ---------------------------------------------------
-
-df <- links_daily
-
-df$link <- trimws(df$link)
+# Create empty dataframe
 
 abstract_data_daily <- data.frame(
   title = character(),
@@ -72,22 +62,30 @@ abstract_data_daily <- data.frame(
   authors = character(),
   bibtex = character(),
   pdf = character(), 
-  extraction_date = character())
+  extraction_date = character(), 
+  node = numeric())
 
 print(paste0("Estimated time to completion: ",
-             round(length(df$link)*26/60/60,2), " hours"))
+             round((as.numeric(target_node)-as.numeric(node_recent))*13/60/60,2),
+             " hours"))
 
-for (linkno in 1:length(df$link)){
+start_node <- node_recent+1
+
+for (node in start_node:target_node) {
   
-  while(TRUE){  
-    sleep_time <- runif(1,10,13)
-    Sys.sleep(sleep_time)
-    print(paste0("DOI ", linkno," of ", length(df$link)))
-    page <- try(read_html(paste0("https://www.medrxiv.org/",df$link[linkno])))
-    if(!is(page, 'try-error')) break
+  try <- 1
+  while (try <= 3) {
+    Sys.sleep(runif(1,10,13))
+    print(paste0("Node ", node, " of ", target_node))
+    link <-  paste0("https://www.medrxiv.org/node/", node, "?versioned=TRUE")
+    page <- try(read_html(link))
+    if (!is(page, 'try-error')) break
+    try <- try + 1
   }
   
-  id <- linkno
+  if (is(page, 'try-error')) next
+  
+  id <- as.numeric(node)-node_recent+1
   
   title <- page %>%
     html_node(".highwire-cite-title") %>%
@@ -104,6 +102,10 @@ for (linkno in 1:length(df$link)){
   date <- page %>%
     html_node(".pane-1 .pane-content") %>%
     html_text()
+  
+  date <- gsub("\u00a0","",date)
+  date <- as.Date(date,"%B%d,%Y")
+  date <- as.character(date)
   
   subject <- page %>%
     html_node(".highlight") %>%
@@ -122,34 +124,52 @@ for (linkno in 1:length(df$link)){
     html_node(".first .hw-download-citation-link") %>%
     html_attr('href')
   
+  node <- gsub("/highwire/citation/","",bibtex)
+  node <- gsub("/bibtext","",node)
   
+  link <- gsub(".full.pdf","", pdf_link)
+  link <- paste0(link,"?versioned=TRUE")
   
   tmp <- data.frame(title = title,
                     abstract = abstract,
-                    link = df$link[linkno],
+                    link = link,
                     pdf = pdf_link, 
                     date = date,
                     subject = subject,
                     authors = authors,
                     bibtex = bibtex,
-                    id=id)
+                    id=id, 
+                    node = node)
   
   abstract_data_daily <- rbind(abstract_data_daily, tmp)
   
 }
 
+# Drop NA values
+abstract_data_daily <- abstract_data_daily %>%
+  drop_na(title)
+
+#Clean dataset
 abstract_data_daily$date  <- gsub("Posted","", abstract_data_daily$date)
 abstract_data_daily$date  <- gsub("\\.","", abstract_data_daily$date)
 abstract_data_daily$date  <- trimws(abstract_data_daily$date)
 abstract_data_daily$authors  <- trimws(abstract_data_daily$authors)
 
-abstract_data_daily$pdf_name <- paste0(format(Sys.Date(),"%d%m%y"),"-",abstract_data_daily$id)
+abstract_data_daily$id <- seq(length(abstract_data_daily$title):1)
 
+abstract_data_daily$pdf_name <- paste0(format(Sys.Date(),"%d%m%y"),"-",abstract_data_daily$id)
 abstract_data_daily$extraction_date <- format(Sys.Date(), format="%d-%m-%Y")
 
-# Save
+# Save data and reference node --------------------------------------------
+
+# Save data
 print("Saving new abstract list . . .")
 abstract_data <- read.csv("data/medRxiv_abstract_list.csv")
+
+if (ncol(abstract_data)>12) {
+  abstract_data <- abstract_data[,c(2:13)]
+}
+
 abstract_data <- rbind(abstract_data, abstract_data_daily)
 
 abstract_data$date <- gsub("Â","",abstract_data$date)
@@ -157,78 +177,11 @@ abstract_data$date <- trimws(abstract_data$date)
 
 write.csv(abstract_data,"data/medRxiv_abstract_list.csv", row.names = FALSE)
 
-
-print("Saving daily links . . . .")
-write.csv(links_daily,"data/medRxiv_links_daily.csv", row.names = FALSE)
-
+#Save reference node
 print("Saving new reference link. . .")
-new_links_recent <- links_daily[1,1]
-write.csv(new_links_recent,"data/medRxiv_last_extracted.csv", row.names = FALSE)
-
-# Extract daily PDFs ------------------------------------------------------
-
-df <- abstract_data_daily
-
-number <- 1
-
-for (file_location in df$pdf) {
-  
-  if (file.exists(paste0("pdf/",df$pdf_name[which(df$pdf==file_location)]))) {
-    print(paste0("File ", number, " already downloaded."))
-    number <- number + 1
-    next
-  }
-  
-  while(TRUE){ 
-    sleep_time <- runif(1,10,13)
-    Sys.sleep(sleep_time)
-    print(paste0("PDF ", number," of ", length(df$link),": ", df$pdf_name[which(df$pdf==file_location)]))
-    pdf <- try(download.file(paste0("https://www.medrxiv.org",file_location), paste0("pdf/",df$pdf_name[number],".pdf"), mode="wb"))
-    if(!is(pdf, 'try-error')) break
-  }
-  
-  number <- number+1
-  
-  if ((number%%250==0)==TRUE) {
-    pushover(paste0("PDF ", number, " of ", length(df$link),
-                    " downloaded! (", round(number/length(df$link)*100,0),"%) "))
-  }
-  
-}
-
-
-# Cross-check -------------------------------------------------------------
-
-page <- read_html("https://www.medrxiv.org/search/%252A")
-
-results <- page %>%
-  html_nodes("#page-title") %>%
-  html_text()
-
-results <- as.numeric(word(results))
-
-data <- read.csv("data/medRxiv_abstract_list.csv", stringsAsFactors = FALSE)
-
-data$link <- substr(data$link,1,nchar(data$link)-2)
-
-extracted <- as.numeric(length(unique(data$link)))
-
-# Check number extracted matches number returned by general search
-if (identical(results,extracted)==TRUE) {
-  cross_check <- "success"
-} else {
-  cross_check <- "failure"
-}
-
-# Notification message ----------------------------------------------------
-message <- paste0("MEDRXIV |",
-                  " New records: ",
-                  length(abstract_data_daily$title),
-                  "| Cross check: ",
-                  cross_check)
-
-pushover(message, user = PUSHOVER_USER, app = PUSHOVER_APP)
+new_node <- as.character(abstract_data_daily$node[length(abstract_data_daily$node)])
+write.csv(new_node,"data/medRxiv_last_extracted.csv", row.names = FALSE)
 
 }
 
-extractdailyfn()
+# extractdailyfn()

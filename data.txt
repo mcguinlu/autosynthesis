@@ -1,0 +1,6 @@
+- path: snapshot
+  name: snapshot
+  rows: 1910
+  cols: 12
+  description: test
+  type: table

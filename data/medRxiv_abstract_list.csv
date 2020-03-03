@@ -9809,3 +9809,83 @@ METHODS: We collect two groups of cases diagnosed with COVID-19 for experiments.
 RESULTS: The sensitivity of the combined ELISA IgM and ELISA IgG detection was 55/63 ( 87.3%), The sensitivity of the combined GICA IgM and GICA IgG detection was 75/91 ( 82.4%), Both methods are negative for healthy controls, specificity of 100% .There is no significant difference between the sensitivity of between ELISA and GICA (IgM+ IgG). 
 CONCLUSIONS: ELISA and GICA for specific IgM and IgG antibodies are conventional serological assays, they are simple, fast, and safe, the results can be used for clinical reference, and the huge clinical diagnosis and treatment pressure can be greatly relieved.","/content/10.1101/2020.02.27.20028787v1?versioned=TRUE","/content/10.1101/2020.02.27.20028787v1.full.pdf","2020-03-01",NA,"Xiang","/highwire/citation/72880/bibtext",5,"020320-5","02-03-2020","72880"
 "Prediction of survival for severe Covid-19 patients with three clinical features: development of a machine learning-based prognostic model with clinical data in Wuhan","The swift spread of COVID-19 epidemic has attracted worldwide attentions since Dec., 2019. Till date, 77,041 confirmed Chinese cases have been reported by National Health Commission of P.R. China with 9,126 critical cases whose survival rate is quite low. Meanwhile, COVID-19 epidemic emergence within the other countries (e.g., Korea, Italy, Japan and Iran) is also remarkable with the increasing spread speed. It plays a more and more important role to efficiently and precisely predict the survival rate for critically ill Covid-19 patients as more fatal cases can be targeted interfered in advanced. However, the survival rates of all the present critically ill COVID -19 patients are estimated manually from over 300 laboratory and clinical features, which inevitably leads to high misdiagnose and missed-diagnose rate due to lack of experience and priori knowledge. As a remedy, we have developed a machine learning-based prognostic model that precisely predicts the survival for individual severe patients with more than 90% accuracy with clinical data collected from Tongji hospital, Wuhan. Significantly, such model only requires three key clinical features, i.e., lactic dehydrogenase (LDH), lymphocyte and High-sensitivity C-reactive protein (hsCRP) out of all 300+ features. The rationality of such mere three features may lie in that they are the representatives of tissue injury-, immunity- and inflammation-typed indices, respectively. From the COVID-19 patient diagnosis aspect, the work actualizes low-cost and prompt criticality classification and survival prediction before targeted intervening and diagnosis, especially for the triage of the large-scale explosive epidemic COVID -19 cases.","/content/10.1101/2020.02.27.20028027v1?versioned=TRUE","/content/10.1101/2020.02.27.20028027v1.full.pdf","2020-03-01",NA,"Yan","/highwire/citation/72881/bibtext",6,"020320-6","02-03-2020","72881"
+"ZIKA VIRUS VERTICAL TRANSMISSION IN CHILDREN WITH CONFIRMED ANTENATAL EXPOSURE","Background:  In utero transmission of Zika virus (ZIKV) can lead to adverse infant outcomes, but vertical transmission rates are unknown.
+Methods: Antenatally ZIKV-exposed children were followed prospectively since the time of the Rio de Janeiro epidemic in 2015-16. Serum and urine specimens were collected from infants from birth throughout the first year of life. Specimens were tested by quantitative reverse transcriptase polymerase chain reaction (PCR) and/or IgM antibody capture Zika MAC-ELISA. Infants had neurodevelopmental evaluations, brain imaging, eye examinations, and hearing assessments.
+Results: Over time 130 in utero ZIKV-exposed (mothers PCR+) children were tested with 407 specimens evaluated: 161 sera were tested by PCR and IgM assays, 85 urines by PCR; 84 children (65%) were positive in at least one assay. Among 94 children tested within 3 months of age, 70% were positive (39% serum PCR, 48% urine PCR, 39% IgM). After 3 months, 33% were positive by any laboratory method. Five children were intermittently PCR+ beyond 200 days of life. Concordance between IgM and PCR results was 52%, sensitivity 65%, specificity 40% (with any positive PCR result as the gold standard); IgM and serum PCR were 61% concordant; serum and urine PCR 55%. Most children (65%) were clinically normal. Positive results were seen in 29 of 45 children (64%) with abnormal findings and 55 of 85 normal children (65%), p=0<U+0660>98. Earlier maternal trimester of infection was associated with positive infant laboratory results but not infant clinical disease (p=0<U+0660>04). 
+Conclusions: ZIKV has a high in utero transmission rate. Laboratory confirmed infection is not necessarily associated with abnormal infant findings.","/content/10.1101/2020.02.26.20028399v1?versioned=TRUE","/content/10.1101/2020.02.26.20028399v1.full.pdf","2020-03-02","Pediatrics
+","Brasil","/highwire/citation/72882/bibtext",1,"030320-1","03-03-2020","72882"
+"Psychiatric comorbid disorders of cognition: A machine learning approach using 1,159 UK Biobank participants","Background
+
+Conceptualising comorbidity is complex and the term is used variously. Here, it is the coexistence of two or more diagnoses which might be defined as chronic and, although they may be pathologically related, they may also act independently 1. Of interest here is the comorbidity of common psychiatric disorders and impaired cognition. 
+
+Objectives
+To examine whether anxiety and/or depression are important longitudinal predictors of impaired cognition.
+
+Methods
+UK Biobank participants used at three timepoints (n= 502,664): baseline, 1st follow-up (n= 20,257) and 1st imaging study (n=40,199). Participants with no missing data were 1,159 participants aged 40 to 70 years, 41% female. Machine learning (ML) was applied and the main outcome measure of reaction time intraindividual variability (cognition) was used.
+
+Findings
+Using the area under the Receiver Operating Characteristic (ROC) curve, the anxiety model achieves the best performance with an Area Under the Curve (AUC) of 0.68, followed by the depression model with an AUC of 0.64. The cardiovascular and diabetes model, and the demographics model have weaker performance in predicting cognition, with an AUC of 0.60 and 0.57, respectively.
+
+Conclusions
+Outcomes suggest psychiatric disorders are more important comorbidities of long-term cognitive change than diabetes and cardiovascular disease, and demographic factors. Findings suggest that mental health disorders (anxiety and depression) may have a deleterious effect on long-term cognition and should be considered as an important comorbid disorder of cognitive decline. 
+
+Clinical implications
+Important predictive effects of poor mental health on longitudinal cognitive decline should be considered in primary care.","/content/10.1101/19006189v2?versioned=TRUE","/content/10.1101/19006189v2.full.pdf","2020-03-02","Psychiatry and Clinical Psychology
+","Li","/highwire/citation/72885/bibtext",2,"030320-2","03-03-2020","72885"
+"Transmission potential of COVID-19 in South Korea","Since the first identified individual of 2019 novel coronavirus (COVID-19) infection on Jan 20, 2020 in South Korea, the number of confirmed cases rapidly increased. As of Feb 26, 2020, 1,261 cases of COVID-19 including 12 deaths were confirmed in South Korea. Using the incidence data of COVID-19, we estimate the reproduction number at 1.5 (95% CI: 1.4-1.6), which indicates sustained transmission and support the implementation of social distancing measures to rapidly control the outbreak.","/content/10.1101/2020.02.27.20028829v2?versioned=TRUE","/content/10.1101/2020.02.27.20028829v2.full.pdf","2020-03-02","Epidemiology
+","Shim","/highwire/citation/72886/bibtext",3,"030320-3","03-03-2020","72886"
+"The Effects of ""Fangcang, Huoshenshan, and Leishenshan"" Makeshift Hospitals and Temperature on the Mortality of COVID-19","Background 
+In December 2019, a novel coronavirus disease (COVID-19) broke out in Wuhan, China, however, the factors affecting the mortality remain unclear.
+Methods 
+Thirty-two days of data that were shared by China National Health Commission and China Weather Net were collected using standard forms. The difference in the mortality of confirmed and severe cases before and after the use of Fangcang, Huoshenshan, and Leishenshan makeshift hospitals (MSHs) was tested using Mann-Whitney U test. We also studied whether air temperature (AT) could affect the above outcomes of COVID-19 cases by performing Spearman analysis.
+Results
+The mortality of confirmed cases was significantly decreased both in Wuhan (U = 1, P < 0.001) and Hubei (U = 0, P < 0.001), while in non-Hubei regions, as a contrast, the mortality of confirmed cases remained unchanged (U = 40, P = 0.139). However, another eight days later, changes in the mortality in non-Hubei regions also became significant (U = 73, P = 0.039). Mortality of confirmed cases was found to be significantly correlated with temperature both in Wuhan (r = -0.441, P = 0.012) and Hubei (r = -0.440, P = 0.012).
+Conclusions
+Our findings indicated that both the use of MSHs and the rise of AT were beneficial to the survival of COVID-19 cases.","/content/10.1101/2020.02.26.20028472v2?versioned=TRUE","/content/10.1101/2020.02.26.20028472v2.full.pdf","2020-03-02","Infectious Diseases (except HIV/AIDS)
+","Cai","/highwire/citation/72891/bibtext",4,"030320-4","03-03-2020","72891"
+"Evaluating the impact of international airline suspensions on the early global spread of COVID-19","Global airline networks play a key role in the global importation of emerging infectious diseases. Detailed information
+on air traffic between international airports has been demonstrated to be useful in retrospectively validating and
+prospectively predicting case emergence in other countries. In this paper, we use a well-established metric known as
+effective distance on the global air traffic data from IATA to quantify risk of emergence for different countries as a consequence
+of direct importation from China, and compare it against arrival times for the first 24 countries. Using this
+model trained on official first reports from WHO, we estimate time of arrival (ToA) for all other countries. We then
+incorporate data on airline suspensions to recompute the effective distance and assess the effect of such cancellations in
+delaying the estimated arrival time for all other countries. Finally we use the infectious disease vulnerability indices to
+explain some of the estimated reporting delays.","/content/10.1101/2020.02.20.20025882v2?versioned=TRUE","/content/10.1101/2020.02.20.20025882v2.full.pdf","2020-03-02","Epidemiology
+","Adiga","/highwire/citation/72894/bibtext",5,"030320-5","03-03-2020","72894"
+"Real-time monitoring the transmission potential of COVID-19 in Singapore, February 2020","Abstract
+Background
+The ongoing COVID-19 epidemic that spread widely in China since December 2019 is now generating local transmission in multiple countries including Singapore as of February 27, 2020. This highlights the need to monitor in real time the transmission potential of COVID-19. In Singapore, four major COVID-19 case clusters have emerged thus far. 
+
+Methods
+Here we estimate the effective reproduction number, Rt, of COVID-19 in Singapore from the publicly available daily case series of imported and autochthonous cases by date of symptoms onset, after adjusting the local cases for reporting delays. We also derive the reproduction number from the distribution of cluster sizes using a branching process analysis. 
+
+Results
+The effective reproduction number peaked with a mean value ~1.1 around February 2nd, 2020 and declined thereafter. As of February 27th, 2020, our most recent estimate of Rt is at 0.5 (95% CI: 0.2,0.7) while an estimate of the overall R based on cluster size distribution is at 0.7 (95% CI: 0.5, 0.9). 
+
+Conclusion
+The trajectory of the reproduction number in Singapore underscore the significant effects of containment efforts in Singapore while at the same time suggest the need to sustain social distancing and active case finding efforts to stomp out all active chains of transmission.","/content/10.1101/2020.02.21.20026435v3?versioned=TRUE","/content/10.1101/2020.02.21.20026435v3.full.pdf","2020-03-02","Epidemiology
+","Tariq","/highwire/citation/72895/bibtext",6,"030320-6","03-03-2020","72895"
+"Infection Dynamics of Coronavirus Disease 2019 (Covid-19) Modeled with the Integration of the Eyring Rate Process Theory and Free Volume Concept","The Eyrings rate process theory and free volume concept, two very popular theories in chemistry
+and physics fields, are employed to treat infectious disease transmissions. The susceptible individ-
+uals are assumed to move stochastically from one place to another. The virus particle transmission
+rate is assumed to obey the Eyring rate process theory and also controlled by how much free
+volume available in a system. The transmission process is considered to be a sequential chemical
+reaction, and the concentrations or fractions of four epidemiological compartments, the susceptible,
+the exposed, the infected, and the removed, can be derived and calculated. The obtained equations
+show that the basic reproduction number, R0, is not a constant, dependent on the volume frac-
+tion of virus particles, virus particle size, and virus particle packing structure, the energy barrier
+associated with susceptible individuals, and environment temperature. The developed models are
+applied to treat coronavirus disease 2019 (Covid-19) transmission and make predictions on peak
+time, peak infected, and R0. Our work provides a simple and straightforward approach to estimate
+how infection diseases evolve and how many people may be infected.","/content/10.1101/2020.02.26.20028571v2?versioned=TRUE","/content/10.1101/2020.02.26.20028571v2.full.pdf","2020-03-02","Epidemiology
+","Hao","/highwire/citation/72896/bibtext",7,"030320-7","03-03-2020","72896"
+"Modelling the coronavirus disease (COVID-19) outbreak on the Diamond Princess ship using the public surveillance data from January 20 to February 20, 2020","The novel coronavirus disease 2019 (COVID-19) outbreak on the Diamond Princess ship has caused over 634 cases as of February 20, 2020. We model the transmission process on the ship with a stochastic model and estimate the basic reproduction number at 2.2 (95%CI: 2.1-2.4). Through estimating the dispersion parameter which quantifies the superspreading events, we find that stochastic bursts were unlikely to occur if the reproduction number is less than 1. The epidemic doubling time is at 4.6 days (95%CI: 3.0-9.3), thus timely action were crucial. The lesson learn on the ship is generally applicable in other settings","/content/10.1101/2020.02.26.20028449v2?versioned=TRUE","/content/10.1101/2020.02.26.20028449v2.full.pdf","2020-03-02","Epidemiology
+","Zhao","/highwire/citation/72897/bibtext",8,"030320-8","03-03-2020","72897"
+"Clinical Data on Hospital Environmental Hygiene Monitoring and Medical Staff Protection during the Coronavirus Disease 2019 Outbreak","Background: The outbreak of coronavirus disease 2019 (COVID-19) has placed unprecedented challenges on hospital environmental hygiene and medical staff protection. It is crucial to assess hospital environmental hygiene to understand the most important environmental issues for controlling the spread of COVID-19 in hospitals. 
+Objective: To detect the presence of COVID-19 in the samples from the area at risk of contamination in the First Hospital of Jilin University.
+Methods: Viruses in the air were collected by natural sedimentation and air particle sampler methods. Predetermined environmental surfaces were sampled using swabs at seven o'clock in the morning before disinfection. The real-time reverse-transcription PCR method was used to detect the existence of COVID-19 pathogens.
+Results: Viruses could be detected on the surfaces of the nurse station in the isolation area with suspected patients and in the air of the isolation ward with an intensive care patient.
+Conclusion: Comprehensive monitoring of hospital environmental hygiene during pandemic outbreaks is conducive to the refinement of hospital infection control. It is of great significance to ensure the safety of medical treatment and the quality of hospital infection control through the monitoring of environmental hygiene.","/content/10.1101/2020.02.25.20028043v2?versioned=TRUE","/content/10.1101/2020.02.25.20028043v2.full.pdf","2020-03-02","Public and Global Health
+","Jiang","/highwire/citation/72898/bibtext",9,"030320-9","03-03-2020","72898"

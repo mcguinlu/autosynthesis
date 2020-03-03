@@ -1,0 +1,20 @@
+path:
+- data.csv
+- data.rds
+rows: 1910
+cols: 12
+columns:
+  title: character
+  abstract: character
+  link: character
+  pdf: character
+  date: character
+  subject: character
+  authors: character
+  bibtex: character
+  id: integer
+  pdf_name: character
+  extraction_date: character
+  node: integer
+description: test
+type: table
